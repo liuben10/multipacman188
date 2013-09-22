@@ -175,6 +175,7 @@ class GradingAgent(Agent):
         studentOptimalAction = False
         curRightStatesExplored = False;
         for i in range(len(optimalActions)):
+            print "%s ?== %s" % (studentAction[1], int(optimalActions[i][1]))
             if studentAction[0] in optimalActions[i][0]:
                 studentOptimalAction = True
             else:
@@ -182,6 +183,8 @@ class GradingAgent(Agent):
             if studentAction[1] == int(optimalActions[i][1]):
                 curRightStatesExplored = True
         if not curRightStatesExplored and self.wrongStatesExplored < 0:
+            print "WRONG ACTION"
+            print "%s != %s" % (studentAction[1], int(optimalActions[0][1]))
             self.wrongStatesExplored = 1
         for i in range(len(altDepthActions)):
             if studentAction[0] not in altDepthActions[i]:
