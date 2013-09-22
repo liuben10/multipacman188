@@ -175,7 +175,7 @@ class GradingAgent(Agent):
         studentOptimalAction = False
         curRightStatesExplored = False;
         for i in range(len(optimalActions)):
-            print "%s ?== %s" % (studentAction[1], int(optimalActions[i][1]))
+            #print "%s ?== %s" % (studentAction[1], int(optimalActions[i][1]))
             if studentAction[0] in optimalActions[i][0]:
                 studentOptimalAction = True
             else:

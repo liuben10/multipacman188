@@ -322,24 +322,25 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         alpha = float('-inf')
         beta = float('inf')
         for action in gameState.getLegalActions(0):
-                if v > beta:
-                    continue
-                alpha = max(v, alpha)
-                temp = self.minValue(-1, 1, gameState.generateSuccessor(0, action), alpha , beta)
+                temp = self.minValue(0, 1, gameState.generateSuccessor(0, action), alpha , beta)
                 if temp > v and action != Directions.STOP:
                         v = temp
                         nextAction = action
+                if temp > beta:
+                    return nextAction
+                alpha = max(temp, alpha)
         if 'getLegalPacmanActions' in dir(gameState):
             print nextAction
         if nextAction == Directions.NORTH:
-            print "++++++++++++++++"
-            print "alpha: " , alpha
-            print "beta: " , beta
-            print "depth: " , self.depth
-            print "V: " , v
-            
-            
-            print "++++++++++++++++"
+#            print "++++++++++++++++"
+#            print "alpha: " , alpha
+#            print "beta: " , beta
+#            print "depth: " , self.depth
+#            print "V: " , v
+#            
+#            
+#            print "++++++++++++++++"
+            print "Hello"
         return nextAction
         util.raiseNotDefined()
         
@@ -437,22 +438,24 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
 def betterEvaluationFunction(currentGameState):
         """
-          Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
-          evaluation function (question 5).
-    
-          DESCRIPTION: <write something here so we know what you did>
+        Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
+        evaluation function (question 5).
+        
+        DESCRIPTION: <write something here so we know what you did>
         """
         "*** YOUR CODE HERE ***"
-        newPos = currentGameState.getPacmanPosition()
-        newFood = currentGameState.getFood()
-        newGhostStates = currentGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
- 
+#        newPos = currentGameState.getPacmanPosition()
+#        newFood = currentGameState.getFood()
+#        newGhostStates = currentGameState.getGhostStates()
+#        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+# 
         if currentGameState.isLose(): 
             return -5555
         if currentGameState.isWin(): 
             return 5555
         score = 0.0
+        
+        util.raiseNotDefined()
         
 
 # Abbreviation
