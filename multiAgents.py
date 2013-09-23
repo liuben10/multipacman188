@@ -436,26 +436,148 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                                         v += float(self.minValue(depth, agent+1, state.generateSuccessor(agent, action))) / actionLength
                         return v
 
-def betterEvaluationFunction(currentGameState):
+def countRemainingFood(newFood):
+    return sum([len(filter(lambda y: y, x)) for x in newFood])
+
+def getGhostScore(newPos, newGhostStates):
+    total, distances = 0, []
+    for ghostState in newGhostStates:
+        ghostCoordinate = ghostState.getPosition()
+        distances.append(manhattanDistance(newPos, ghostCoordinate))
+        # approachingGhosts = len(filter(lambda x: x < 5, distances))
+        # if approachingGhosts:
+        #     return -10*approachingGhosts
+    return sum(distances)
+
+def avgFoodDistance(newPos, newFood):
+    distances = []
+    for x, row in enumerate(newFood):
+        for y, column in enumerate(newFood[x]):
+            if newFood[x][y]:
+                distances.append(manhattanDistance(newPos, (x,y)))
+    avgDistance = sum(distances)/float(len(distances)) if (distances and sum(distances) != 0) else 1
+    return avgDistance
+
+def surroundingFood(newPos, newFood):
+    count = 0
+    for x in range(newPos[0]-2, newPos[0]+3):
+        for y in range(newPos[1]-2, newPos[1]+3):
+            if (0 <= x and x < len(list(newFood))) and (0 <= y and y < len(list(newFood[1]))) and newFood[x][y]:
+                count += 1
+    return count
+def getMin(pos, List):
+        return min([util.manhattanDistance(pos, posIter) for posIter in List])
+def minGhostDistance(newPos, newGhostStates):
+    distances = []
+    for ghostState in newGhostStates:
+        ghostCoordinate = ghostState.getPosition()
+        distances.append(manhattanDistance(newPos, ghostCoordinate))
+    if distances and min(distances) != 0:
+        return min(distances)
+    return 1
+def evalFN(currentGameState, action):
         """
+        Design a better evaluation function here.
+
+        The evaluation function takes in the current and proposed successor
+        GameStates (pacman.py) and returns a number, where higher numbers are better.
+
+        The code below extracts some useful information from the state, like the
+        remaining food (newFood) and Pacman position after moving (newPos).
+        newScaredTimes holds the number of moves that each ghost will remain
+        scared because of Pacman having eaten a power pellet.
+
+        Print out these variables to see what you're getting, then combine them
+        to create a masterful evaluation function.
+        """
+        # Useful information you can extract from a GameState (pacman.py)
+        successorGameState = currentGameState.generatePacmanSuccessor(action)
+        if successorGameState.isWin() :   return 5555 
+        if successorGameState.isLose() :  return -5555
+        
+        newPos = successorGameState.getPacmanPosition()
+        oldFood = currentGameState.getFood()
+        newGhostStates = successorGameState.getGhostStates()
+        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        
+        #print '\nnewPos '+str(newPos)
+        #print 'oldFood '+str(oldFood.asList())
+        #print "score %d" % successorGameState.getScore()
+        closestCapsule = 0
+        "obtain food score"
+        newFood = successorGameState.getFood()
+        newfoodList = newFood.asList()
+        closestFood = getMin(newPos, newfoodList)
+        foodScore = 80 / closestFood
+        
+        
+        "obtain capsuleScore"
+        capsuleList = successorGameState.getCapsules()
+        closestCapsule = getMin(newPos, capsuleList) if capsuleList else 0
+        capsuleScore = 80/closestCapsule if capsuleList else 0
+        #print "capScore: ", capsuleScore
+        totalScaredTime = sum(newScaredTimes)
+        "obtain ghost score"
+        closestGhost = 1
+        ghostPositions = [ghostState.getPosition() for ghostState in newGhostStates if ghostState.scaredTimer == 0]
+        ghostScore = 1
+        if ghostPositions:
+            closestGhost = getMin(newPos, ghostPositions)
+            if closestGhost <= 1 and totalScaredTime == 0:
+                return -200
+            elif closestGhost <= 1 and totalScaredTime > 0:
+                print "Hello"
+                return 5555
+        else:
+            return 5555
+        ghostScore = 10.0 * closestGhost
+        "a new evaluation function."
+        heuristic = successorGameState.getScore() + (foodScore + capsuleScore) / ghostScore + totalScaredTime
+        #print heuristic
+        return heuristic
+def getMinGhost(curPos, ghostList):
+    minGhost = None
+    minScore = float('inf')
+    for v in ghostList:
+        dist = util.manhattanDistance(curPos, v.getPosition())
+        if dist < minScore:
+            minGhost = v
+            minScore = dist
+    return minGhost
+
+def getMinFoodDist(curPos, currentFood, currentGameState):
+    minScore = float('inf')
+    for v in currentFood:
+        dist = searchAgents.mazeDistance(curPos, v, currentGameState)
+        if dist < minScore:
+            minScore = dist
+    return minScore
+def betterEvaluationFunction(currentGameState):
+    """
         Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
         evaluation function (question 5).
-        
-        DESCRIPTION: <write something here so we know what you did>
-        """
-        "*** YOUR CODE HERE ***"
-#        newPos = currentGameState.getPacmanPosition()
-#        newFood = currentGameState.getFood()
-#        newGhostStates = currentGameState.getGhostStates()
-#        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-# 
-        if currentGameState.isLose(): 
-            return -5555
-        if currentGameState.isWin(): 
-            return 5555
-        score = 0.0
-        
-        util.raiseNotDefined()
+
+    """
+    currentPos = currentGameState.getPacmanPosition()
+    currentFood = currentGameState.getFood()
+    currentGhostStates = currentGameState.getGhostStates()
+    ghostPositions = []
+    minFood = 1
+    
+    minGhost = getMinGhost(currentPos, currentGhostStates)
+    ghostDist = util.manhattanDistance(currentPos, minGhost.getPosition())
+    if ghostDist <= 2 and minGhost.scaredTimer == 0:
+        return -5555
+    elif ghostDist <= 2 and minGhost.scaredTimer > 0:
+        return 5555
+    
+    surFood = surroundingFood(currentPos, currentFood)
+    foodList =  currentFood.asList()
+    
+    minFood = getMinFoodDist(currentPos, foodList, currentGameState)
+    
+    return 10.0/ minFood + ghostDist
+    util.raiseNotDefined()
         
 
 # Abbreviation

@@ -144,6 +144,7 @@ class PositionSearchProblem(search.SearchProblem):
         costFn: A function from a search state (tuple) to a non-negative number
         goal: A position in the gameState
         """
+        self.gameState = gameState
         self.walls = gameState.getWalls()
         self.startState = gameState.getPacmanPosition()
         if start != None: self.startState = start
@@ -741,6 +742,22 @@ def heuristicFood(startState, problem):
     if minD == -1:
         return 0
     return minD
+def heuristicForAStar(state, problem=None):
+    position = state
+    foodGrid = problem.gameState.getFood().asList()
+    closestDistance = float('inf')
+    lengthList = []
+    for foodCord in foodGrid:
+        xy1 = foodCord
+        xy2 = position
+        distance = util.manhattanDistance(xy2, xy1)
+        lengthList.append(distance)
+        if distance < closestDistance:
+            closestDistance = distance
+    if closestDistance == float('inf'):
+        return 55555
+    return closestDistance
+
 
 def mazeDistance(point1, point2, gameState):
     """
@@ -758,4 +775,4 @@ def mazeDistance(point1, point2, gameState):
     assert not walls[x1][y1], 'point1 is a wall: ' + point1
     assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
     prob = PositionSearchProblem(gameState, start=point1, goal=point2, warn=False)
-    return len(search.bfs(prob))
+    return len(search.astar(prob, manhattanHeuristic))
